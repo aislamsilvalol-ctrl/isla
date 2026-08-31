@@ -42,6 +42,24 @@ class Sample(Base):
     meta: Mapped[dict] = mapped_column(JSON, default=dict)
 
 
+class Event(Base):
+    """Raw normalized signal — DATA PROVENANCE (V2 item 30): every number
+    on screen traces back to a source URL and timestamp."""
+    __tablename__ = "events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    topic_id: Mapped[int] = mapped_column(Integer, index=True)
+    source: Mapped[str] = mapped_column(String(24), index=True)
+    ts: Mapped[datetime] = mapped_column(DateTime(timezone=True),
+                                         default=utcnow, index=True)
+    title: Mapped[str] = mapped_column(String(300), default="")
+    url: Mapped[str] = mapped_column(String(600), default="")
+    engagement: Mapped[float] = mapped_column(Float, default=0)
+    region: Mapped[str] = mapped_column(String(16), default="")
+    language: Mapped[str] = mapped_column(String(8), default="")
+    simulated: Mapped[int] = mapped_column(Integer, default=0)  # NUNCA misturar
+
+
 def open_db(path: str) -> Session:
     engine = create_engine(f"sqlite:///{path}")
     Base.metadata.create_all(engine)

@@ -1,7 +1,7 @@
 [project]
 name = "isla"
-version = "0.1.0"
-description = "ISLA — open-source virality radar. Detects what is about to go viral, from real signals, before the peak."
+version = "0.2.0"
+description = "ISLA — open-source global viral intelligence network. Detects what is about to go viral, from real signals, before the peak — with live SSE stream, provenance and explainability."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

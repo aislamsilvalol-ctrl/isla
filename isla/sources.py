@@ -208,6 +208,28 @@ def fetch_reddit(cfg: Config) -> list[dict]:
     return out
 
 
+
+
+def fetch_hackernews(cfg: Config) -> list[dict]:
+    """Official HN Algolia API — front page, real points+comments, no key."""
+    r = httpx.get("https://hn.algolia.com/api/v1/search",
+                  params={"tags": "front_page", "hitsPerPage": 30},
+                  headers=UA, timeout=15)
+    r.raise_for_status()
+    out = []
+    for h in r.json().get("hits", []):
+        title = h.get("title") or ""
+        if not title:
+            continue
+        out.append({"source": "hackernews", "topic_raw": title,
+                    "engagement": float(h.get("points", 0))
+                    + 2.0 * float(h.get("num_comments", 0)),
+                    "url": h.get("url")
+                    or f"https://news.ycombinator.com/item?id={h.get('objectID')}",
+                    "category": "tech", "author": h.get("author", "")})
+    return out
+
+
 # each adapter declares capabilities + HONEST freshness (Source SDK)
 SOURCES: dict[str, dict] = {
     "google_trends": {"fetch": fetch_google_trends,
@@ -217,6 +239,8 @@ SOURCES: dict[str, dict] = {
                   "freshness": "daily (yesterday's top — confirmation)"},
     "bluesky": {"fetch": fetch_bluesky, "configured": lambda c: True,
                 "freshness": "live trends (real postCount)"},
+    "hackernews": {"fetch": fetch_hackernews, "configured": lambda c: True,
+                   "freshness": "front page (official Algolia API)"},
     "rss": {"fetch": fetch_rss,
             "configured": lambda c: bool(c.rss_feeds),
             "freshness": "each feed's cadence — set ISLA_RSS_FEEDS"},

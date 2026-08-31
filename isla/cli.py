@@ -22,11 +22,20 @@ def main() -> int:
     top.add_argument("--limit", type=int, default=15)
     top.add_argument("--json", action="store_true")
     sub.add_parser("sources", help="show source health/configuration")
-    serve = sub.add_parser("serve", help="start the JSON API (needs [serve])")
+    serve = sub.add_parser("serve", help="start the web UI + API (needs [serve])")
     serve.add_argument("--port", type=int, default=8800)
+    sub.add_parser("replay", help="recompute all metrics from stored samples "
+                                  "(no network — deterministic re-run)")
+    demo = sub.add_parser("demo", help="seed a SEPARATE demo db with SIMULATED "
+                                       "data, clearly labeled — never mixed "
+                                       "with real signals")
+    demo.add_argument("--db", default="isla-demo.db")
     args = p.parse_args()
 
     cfg = load()
+    if args.cmd == "demo":
+        _seed_demo(args.db)
+        return 0
     db = open_db(cfg.db_path)
 
     if args.cmd == "scan":
@@ -59,6 +68,21 @@ def main() -> int:
             print(f"  {name:14s} {'configured' if ok else 'off':10s} "
                   f"{src['freshness']}")
         return 0
+    if args.cmd == "replay":
+        from .engine import update_metrics
+        from .store import Topic
+        from sqlalchemy import select as _select
+
+        topics = db.execute(_select(Topic)).scalars().all()
+        for t in topics:
+            update_metrics(db, t, cfg.home_region)
+        db.commit()
+        print(f"replay: recomputed metrics for {len(topics)} topics "
+              "from stored samples (zero network calls)")
+        for i, t in enumerate(top_topics(db, limit=10), 1):
+            print(f"{i:2d}. [{t['opportunity']:3d}] {t['label']:13s} "
+                  f"{t['topic'][:50]}")
+        return 0
     if args.cmd == "serve":
         try:
             import uvicorn
@@ -71,6 +95,47 @@ def main() -> int:
         return 0
     p.print_help()
     return 0
+
+
+def _seed_demo(db_path: str) -> None:
+    """SIMULATED fixtures in a SEPARATE db (V2 item 36): explore the product
+    without keys or network. Every topic is flagged simulated → amber banner
+    in the UI, SIM tag on provenance. Real and demo data never share a file."""
+    from datetime import timedelta
+
+    from .engine import update_metrics
+    from .store import Event, Sample, Topic, open_db, utcnow
+
+    db = open_db(db_path)
+    now = utcnow()
+    fixtures = [  # (topic, engagement curve oldest→newest = one shape each)
+        ("demo: synthwave revival", [40, 55, 90, 170]),      # breakout
+        ("demo: quiet cooking hack", [80, 82, 85, 84]),      # flat
+        ("demo: indie game jam", [10, 30, 45, 50]),          # decelerating rise
+        ("demo: fading meme", [200, 150, 90, 60]),           # declining
+    ]
+    for name, curve in fixtures:
+        t = Topic(canonical=name, category="demo",
+                  first_seen=now - timedelta(minutes=len(curve) * 5))
+        db.add(t)
+        db.flush()
+        for i, eng in enumerate(curve):
+            ts = now - timedelta(minutes=(len(curve) - 1 - i) * 5)
+            db.add(Sample(topic_id=t.id, source="demo", ts=ts,
+                          engagement=eng, items=3,
+                          meta={"regions": ["BR"], "baseline_x": 1.0}))
+            db.add(Event(topic_id=t.id, source="demo", ts=ts,
+                         title=f"{name} — simulated signal {i + 1}",
+                         url="https://example.com/simulated",
+                         engagement=eng, region="BR", simulated=1))
+        db.commit()
+        update_metrics(db, t, "BR")
+        t.scores = {**t.scores, "simulated": True}
+        db.commit()
+    print(f"demo: seeded {len(fixtures)} SIMULATED topics into {db_path}")
+    print("      run:  ISLA_DB=" + db_path + " isla serve")
+    print("      the UI will show the SIMULATED DATA banner — demo data is")
+    print("      never written to your real database.")
 
 
 if __name__ == "__main__":
