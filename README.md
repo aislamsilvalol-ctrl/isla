@@ -3,6 +3,9 @@
 **Open-source global viral intelligence network.** Signals in → trends out —
 measured between real samples, never invented.
 
+[![CI](https://github.com/aislamsilvalol-ctrl/isla/actions/workflows/ci.yml/badge.svg)](https://github.com/aislamsilvalol-ctrl/isla/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-0E0E10.svg)](./LICENSE)
+
 ISLA watches public sources (search, encyclopedic attention, social trends,
 live streams, communities, front pages, any RSS feed) and answers one
 question before everyone else: **what is about to go viral?**
@@ -95,11 +98,40 @@ Interactive OpenAPI docs at `/docs`.
 `LEAD:US` = strong abroad, absent in your home region — your early window.
 Label thresholds are calibratable: `ISLA_SCORE_THRESHOLDS=20,40,60,75,90`.
 
+## Architecture
+
+One process, one file of state. The full write-up, including the data model
+and the scoring pipeline, is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+```mermaid
+flowchart TD
+    S[Sources registry<br/>google_trends · wikipedia · bluesky · hackernews<br/>rss · youtube · twitch · reddit *BYOK*] -->|normalised signals| E
+    L[asyncio scan loop<br/>ISLA_SCAN_INTERVAL] --> S
+    E[Trend engine<br/>dedup → cluster → baseline → velocity / acceleration<br/>→ lifecycle · anomaly · regional lead → score → why-factors] --> DB[(SQLite<br/>topics · samples · events)]
+    C[LLM clustering<br/>optional, Anthropic] -.-> E
+    DB --> API[REST /api/v1/*]
+    DB --> SSE[SSE /api/v1/stream]
+    API --> UI[Web UI]
+    SSE --> UI
+```
+
 ## Build your own source
 
 Every source is a small adapter returning normalized signals. See
 [docs/SOURCE_SDK.md](docs/SOURCE_SDK.md) — ~20 lines gets you a new source.
 Architecture and scaling path: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+## Security
+
+Public APIs only, credentials from environment variables only, nothing
+written to logs. Report vulnerabilities through
+[private vulnerability reporting](https://github.com/aislamsilvalol-ctrl/isla/security/advisories/new);
+details in [SECURITY.md](SECURITY.md).
+
+## Contributing
+
+Small, honest PRs. Setup, source SDK and commit conventions are in
+[CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
