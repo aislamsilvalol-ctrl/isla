@@ -100,8 +100,8 @@ Label thresholds are calibratable: `ISLA_SCORE_THRESHOLDS=20,40,60,75,90`.
 
 ## Architecture
 
-One process, one file of state. The full write-up, including the data model
-and the scoring pipeline, is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+One process, one file of state. Data model and scoring pipeline are in
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ```mermaid
 flowchart TD
@@ -123,15 +123,14 @@ Architecture and scaling path: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Security
 
-Public APIs only, credentials from environment variables only, nothing
-written to logs. Report vulnerabilities through
-[private vulnerability reporting](https://github.com/aislamsilvalol-ctrl/isla/security/advisories/new);
-details in [SECURITY.md](SECURITY.md).
+Public APIs only, keys from environment variables, nothing in logs. Report
+vulnerabilities through
+[private vulnerability reporting](https://github.com/aislamsilvalol-ctrl/isla/security/advisories/new)
+or contact@aislam.dev. Details in [SECURITY.md](SECURITY.md).
 
 ## Contributing
 
-Small, honest PRs. Setup, source SDK and commit conventions are in
-[CONTRIBUTING.md](CONTRIBUTING.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 

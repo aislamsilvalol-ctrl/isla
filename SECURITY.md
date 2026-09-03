@@ -1,33 +1,27 @@
-# Security Policy
+# Security
 
-ISLA only talks to public, official APIs and stores everything in a local
-SQLite file. The main things worth protecting are your BYOK credentials
-(YouTube, Twitch, Reddit, Anthropic) and the machine you self-host it on.
+ISLA talks only to public APIs and keeps its state in a local SQLite file.
+What matters most: your BYOK credentials (YouTube, Twitch, Reddit,
+Anthropic) and the host you run it on.
 
 ## Supported versions
 
-| Version | Supported |
-| ------- | --------- |
-| 0.2.x   | yes       |
-| < 0.2   | no        |
+0.2.x is supported. Older versions are not.
 
-## Reporting a vulnerability
+## Reporting
 
-Use GitHub's private vulnerability reporting:
+Use GitHub private vulnerability reporting:
 https://github.com/aislamsilvalol-ctrl/isla/security/advisories/new
 
-Please do not open a public issue for anything that could leak credentials
-or let a remote party run code on a host.
+Or email contact@aislam.dev.
 
-Include what you can: version, source connector involved, reproduction steps,
-and impact as you understand it. You will get an acknowledgement within
-72 hours and a fix or a mitigation plan within 14 days for confirmed issues.
+Don't open a public issue for anything involving credentials or remote code
+execution. Include the version, the connector involved and steps to
+reproduce. I answer within 72 hours.
 
-<!-- A dedicated security mailbox will be listed here once it is live. -->
+## Notes
 
-## Scope notes
-
-- Secrets are read from environment variables only and never written to the
+- Keys come from environment variables and are never written to the
   database or to logs.
-- Demo (simulated) data lives in a separate database and is labelled in the UI.
-- The web UI and API bind to localhost by default; expose them deliberately.
+- Demo data lives in a separate database and is labelled in the UI.
+- The API and the UI bind to localhost by default.
