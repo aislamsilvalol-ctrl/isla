@@ -4,3 +4,15 @@ __pycache__/
 *.egg-info/
 isla.db
 .env
+
+# build / tooling
+dist/
+build/
+*.egg-info/
+.pytest_cache/
+.coverage
+coverage.xml
+.DS_Store
+*.log
+*.pem
+*.key
